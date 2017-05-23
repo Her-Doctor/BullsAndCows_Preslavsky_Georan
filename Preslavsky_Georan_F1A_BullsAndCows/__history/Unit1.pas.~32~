@@ -1,0 +1,259 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
+
+type
+  TForm1 = class(TForm)
+    ECows: TEdit;
+    EBulls: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    LWin_Lose: TLabel;
+    LCarMax: TLabel;
+    ERep: TEdit;
+    LTry: TLabel;
+    Label4: TLabel;
+    BGo: TButton;
+    BRaz: TButton;
+    BQuit: TButton;
+    Memo1: TMemo;
+    Label3: TLabel;
+    Function EstLettre(Sender:TObject ; c:Char) : Boolean;
+    Function VerifMot(Sender:TObject ; Mot : String):Boolean;
+    procedure Cowscpt(Sender: TObject);
+    procedure Bullscpt(Sender: TObject);
+    procedure RandMot(Sender: TObject);
+    procedure BQuitClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure BRazClick(Sender: TObject);
+    procedure BGoClick(Sender: TObject);
+  private
+    { Déclarations privées }
+  public
+    { Déclarations publiques }
+  end;
+Const
+  MAXMOT =10;
+var
+  Form1: TForm1;
+  MotRes: String;
+  cpt1:Integer;
+implementation
+
+{$R *.dfm}
+  {
+    énoncé :
+    Bulls and Cows game
+    but du jeu : demander un mot à l'user
+    Comparer ce mot avec les mots de votre fichier ( avec 10 mots de taille spécifique)
+    par contre , le choix du mot est aléatoire
+    vous devrez tester la saisie des users , les mots saisi en majuscule ne sont pas acceptés
+    les caractères spéciaux ne sont pas acceptés , les mots doivent étres isogrammes ( ne pas avoir deux fois la meme lettre )
+    le mot a un nombre de caractère maximum.
+
+    vous testerez la longueur du mot saisie par l'utilisateur ,
+    vous lui indiquerez si le mot est trop petit ou si il est trop grands ,
+     ainsi que le nombre de caractère maximum  .
+
+     je joueur a un nombre d'essais max en fonction de la taille du mot ,
+     si il y a une erreur de saisie , cela ne validera pas comme un essai.
+
+     3 car  4 essais
+     4 car  7 essais
+     5 car  10 essais
+     6 car  16 essais
+     7 car  20 essais
+
+     pour chaque taille de mot , un nombre d'essais diff
+
+     indiquez au joueur quand il perd ou gagne , et le joueur peut recommencer (reset tout)
+
+
+
+
+
+  }
+
+Function TForm1.EstLettre(Sender:TObject ; c:Char) : Boolean;
+			begin
+				if (Ord(c)>=97) AND (Ord(c)<=122) then
+					begin
+						EstLettre:=True;
+					end
+				else
+					begin
+						EstLettre:=False;
+					end;
+			end;
+Function TForm1.VerifMot(Sender:TObject ; Mot : String):Boolean;
+var
+  i:Integer;
+begin
+  VerifMot := False;
+  //Fonction qui va verifier le mot
+  for i := 1 to length(Mot) do
+    begin
+       if EstLettre(Sender ,Mot[i]) = true then
+        begin
+          VerifMot := True;
+        end
+       else
+        begin
+          VerifMot := False;
+        end;
+    end;
+
+end;
+procedure TForm1.Cowscpt(Sender: TObject);
+var
+  i,j:integer;
+begin
+  //procedure pour faire calculer les Cows
+  ECows.Text:='0';
+  if (length(ERep.Text)=length(MotRes)) then   // si le mot est trop grand ou trop petit
+    begin   // calcul en soit
+     for I := 1 to length(MotRes) do
+        begin
+          for j := 1 to length(MotRes) do
+            begin
+              if I <> j then
+                begin
+                  if MotRes[i] = (ERep.Text[j]) then ECows.Text := inttostr(strtoint(Ecows.Text)+ 1);
+                end;
+            end;
+        end;
+    end;
+end;
+procedure TForm1.Bullscpt(Sender: TObject);
+var
+  i,cpt:integer;
+begin
+  //procedure pour faire calculer les bulls
+  EBulls.Text:='0';
+  if (length(ERep.Text)<>length(MotRes)) then   // si le mot est trop grand ou trop petit
+  begin
+      showmessage('Mot trop grand , ou trop petit !');
+  end
+  else
+    begin   // calcul en soit
+      for i := 1 to length(ERep.Text) do
+        begin
+                 if ERep.Text[i]=MotRes[i] then
+                  begin
+                    cpt:= StrToInt(EBulls.Text) ;
+                    cpt:= cpt+1 ;
+                    EBulls.Text := IntToStr(cpt);
+                  end;
+        end;
+        LTry.Caption:=InttoStr(StrToInt(LTry.Caption)-1);
+  end;
+
+end;
+procedure TForm1.RandMot(Sender: TObject);
+var
+  i,cpt:integer;
+begin
+  // procedure qui va donner un mot random  , marquer le nombre de caract max , plus le nombre d'essais
+  cpt:=0;
+  randomize;
+  i:=random(MAXMOT);
+  MotRes:= Memo1.Lines[i];
+
+        cpt:=length(MotRes);
+
+  LCarMax.Caption:= ('Caractères Max: '+IntToStr(cpt));
+  cpt1:=cpt;
+  //ERep.text:=MotRes;
+  //permet de vérifier le mot
+
+  case cpt of
+    3: LTry.Caption:= '4' ;
+    4: LTry.Caption:= '7' ;
+    5: LTry.Caption:= '10' ;
+    6: LTry.Caption:= '16' ;
+    7: LTry.Caption:= '20' ;
+  end;
+
+end;
+
+procedure TForm1.BGoClick(Sender: TObject);
+begin
+  if VerifMot(Sender , ERep.Text)= True then
+    begin
+      Bullscpt(Sender);
+      Cowscpt(Sender);
+      if (StrtoInt(EBulls.Text)= cpt1) then
+        begin
+          BGo.Visible:=false;
+          LWin_Lose.Caption := LWin_Lose.Caption + 'Win';
+          {
+            if MessageDlg('Vous avez gagné ! recommencer ?',
+          mtConfirmation, [mbYes, mbNo], 0, mbYes) = mrYes then
+                begin
+                  BRazclick(Sender);
+                end
+          else
+                begin
+                  close;
+                end;
+            }
+        end;
+      if (LTry.Caption ='0') then
+       begin
+          BGo.Visible:=false;
+          LWin_Lose.Caption := LWin_Lose.Caption + 'Lose';
+          {
+            if MessageDlg('Vous avez Perdu ! recommencer ?',
+          mtConfirmation, [mbYes, mbNo], 0, mbYes) = mrYes then
+                begin
+                  BRazclick(Sender);
+                end
+          else
+                begin
+                  close;
+                end;
+           }
+        end;
+    end
+  else
+    begin
+      showmessage('Le mot donné a des caractères spéciaux,des chiffres ou des caractères en majuscule.');
+    end;
+
+
+end;
+
+procedure TForm1.BQuitClick(Sender: TObject);
+begin
+  if MessageDlg('Voulez vous vraiment quitter ? On s''amusait bien pourtant...',
+      mtConfirmation, [mbYes, mbNo], 0, mbYes) = mrYes then
+            begin
+              close;
+            end
+      else
+            begin
+              ERep.setFocus;
+            end;
+end;
+
+procedure TForm1.BRazClick(Sender: TObject);
+begin
+  BGo.Visible:=true;
+  RandMot(Sender);
+  LWin_Lose.Caption := 'Win / Lose :';
+  EBulls.Text:='0';
+  ECows.Text:='0';
+  ERep.Text:='';
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  Memo1.lines.LoadFromFile('ListeMots.txt');
+  RandMot(Sender);
+end;
+
+end.
